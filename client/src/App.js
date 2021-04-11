@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import getWeb3 from "./getWeb3";
 
+import Routes from "./Routes";
+
 function App() {
   const [web3, setWeb3] = useState(null);
 
@@ -19,10 +21,11 @@ function App() {
 
   return (
     <div>
-      <p>
+      <Routes />
+      {/* <p>
         Edit <code>src/App.js</code> and save to reload.
       </p>
-      {web3 && <AccountsList web3={web3} />}
+      {web3 && <AccountsList web3={web3} />} */}
     </div>
   );
 }
