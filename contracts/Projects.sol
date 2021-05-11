@@ -1,0 +1,71 @@
+pragma solidity ^0.5.0;
+
+contract Projects {
+    
+    uint256 public projectCount = 0;
+    mapping(uint => Project) public project;
+    mapping(address => uint256) public deposits;
+    
+    address payable owner;
+    
+     constructor () public {
+        owner = msg.sender;
+    }
+    
+    modifier onlyOwner(){ // only the owner of the contract can call those methods
+        require(msg.sender == owner);
+        _;
+    }
+    
+    function incrementCount() internal {
+        projectCount += 1;
+    }
+    
+    struct Project {
+        uint id;
+        uint value; //amount of wei it pays
+        string name;
+        uint state; //0 is untaken, 1 is taken, 2 is finished
+        address programer; // the person working on the project
+    }
+    
+    function addProject(string memory _name) payable public {
+        incrementCount(); // increment the number of projects
+        project[projectCount] = Project(projectCount,msg.value,_name,0,address(0)); // initialise the project
+        require(msg.value > 1000,"The amount of wei is insufficient");// amount must be al least 1000 wei (200 euro as of 5/11/2021)
+        owner.transfer(msg.value);
+        
+    }
+ 
+    function takeProject(uint _id) public { // method should be called when a programmer decides to work on the project given as parameter
+        
+        require(project[_id].state != 1,"The project is already taken");
+        project[_id].programer = msg.sender;
+        project[_id].state = 1;
+        
+    } 
+    
+    function finishProject(uint _id) public onlyOwner { // method should be  called when the project is considered finished and it sets it's state to finished
+        require(project[_id].state != 0, "The project is not taken");
+        require(project[_id].state != 2, "The project is already finished");
+        project[_id].state = 2;
+        
+    }
+    
+    
+    function deposit(address payee) public onlyOwner payable { // deposits any sent amount of ether to the payee adress
+        uint256 amount = msg.value;
+        deposits[payee] = deposits[payee] + amount;
+    
+    }
+    
+    function withdraw(address payable payee) public onlyOwner { // withdraws all the ether stored in the deposits
+        uint256 payment = deposits[payee];
+        deposits[payee] = 0;
+        payee.transfer(payment);
+        
+    }
+    
+        
+    
+}
