@@ -32,7 +32,7 @@ function App() {
         //   value: "1000000000000000000",
         //   gas: 6721974,
         // });
-        console.log(await instance.methods.projectCount().call());
+        //console.log(await instance.methods.projectCount().call());
         // console.log(result);
       }
       asyncUseEffect();
