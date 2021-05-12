@@ -4,7 +4,6 @@ contract Projects {
     
     uint256 public projectCount = 0;
     mapping(uint => Project) public project;
-    mapping(address => uint256) public deposits;
     
     address payable owner;
     
@@ -65,7 +64,7 @@ contract Projects {
     }
 
     function validateProject(uint _id) public onlyOwner {
-        `
+        
         require(project[_id].state != 0, "The project is not taken");
         require(project[_id].state != 1, "The project is taken");
         require(project[_id].state != 3, "The project is validated");
