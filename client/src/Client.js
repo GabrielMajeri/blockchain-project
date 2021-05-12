@@ -1,69 +1,37 @@
 import { useState, useEffect } from "react";
-import getWeb3 from "./getWeb3";
-import ProjectsContract from "./contracts/Projects.json";
 
-function Client() {
-  const [web3, setWeb3] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-
+function Client({ web3, projects, accountAddr, instance, parentCallback }) {
   const [projectName, setProjectName] = useState("");
   const [paymentEth, setPaymentEth] = useState(0);
-
-  const [projects, setProjects] = useState(null);
+  const [balance, setBalance] = useState(0);
 
   useEffect(() => {
-    // Connect to the local Ethereum node
-    getWeb3().then(setWeb3);
+    async function getBalance() {
+      setBalance(await web3.eth.getBalance(accountAddr));
+    }
+    getBalance();
   }, []);
 
   async function createProject() {
     if (projectName !== "" && paymentEth !== 0) {
       console.log(projectName, paymentEth);
 
-      console.log("Web3 object:", web3);
-      web3.eth.getAccounts().then(setAccounts);
-
-      const networkId = await web3.eth.net.getId();
-      const deployedNetwork = ProjectsContract.networks[networkId];
-      const instance = new web3.eth.Contract(
-        ProjectsContract.abi,
-        deployedNetwork && deployedNetwork.address
-      );
-
       let ethPayment = (paymentEth * 1000000000000000000).toString();
       console.log(ethPayment);
 
       await instance.methods.addProject(projectName).send({
-        from: "0xC404F3c136076dEc198FF22e374AD049fD55eF3F",
+        from: accountAddr.toString(),
         value: ethPayment,
         gas: 6721000,
       });
     }
-  }
 
-  async function showProjects() {
-    const networkId = await web3.eth.net.getId();
-    const deployedNetwork = ProjectsContract.networks[networkId];
-    const instance = new web3.eth.Contract(
-      ProjectsContract.abi,
-      deployedNetwork && deployedNetwork.address
-    );
-
-    let projectNumber = await instance.methods.projectCount().call();
-
-    let projects = [];
-
-    for (let i = 0; i < projectNumber; i++) {
-      let project = await instance.methods.project(i).call();
-      projects.push(project);
-    }
-
-    setProjects(projects);
+    parentCallback();
   }
 
   return (
     <>
-      <h1>Hello Client</h1>
+      <h1>Hello Client {balance}</h1>
       <h2>Create new project</h2>
       <form>
         <label>
@@ -89,7 +57,6 @@ function Client() {
         </label>
       </form>
       <button onClick={createProject}>Create Project</button>
-      <button onClick={showProjects}>Show Projects</button>
 
       {projects && (
         <table>
@@ -102,8 +69,8 @@ function Client() {
             </tr>
           </thead>
           <tbody>
-            {projects.map((project, i) => (
-              <tr key={i}>
+            {projects.map((project) => (
+              <tr key={project.id}>
                 <td>{project.name}</td>
                 <td>{project.programer}</td>
                 <td>{project.state}</td>

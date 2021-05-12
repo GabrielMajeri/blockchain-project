@@ -2,11 +2,17 @@ import { useState, useEffect } from "react";
 import getWeb3 from "./getWeb3";
 import ProjectsContract from "./contracts/Projects.json";
 
-import Routes from "./Routes";
+import { Link, BrowserRouter as Router, Route } from "react-router-dom";
+
+import Freelancer from "./Freelancer";
+import Admin from "./Admin";
+import Client from "./Client";
 
 function App() {
   const [web3, setWeb3] = useState(null);
   const [accounts, setAccounts] = useState([]);
+  const [projects, setProjects] = useState(null);
+  const [instance, setInstance] = useState(null);
 
   useEffect(() => {
     // Connect to the local Ethereum node
@@ -15,57 +21,101 @@ function App() {
 
   useEffect(() => {
     if (web3) {
-      async function asyncUseEffect() {
+      async function getAccounts() {
         // See https://web3js.readthedocs.io/en/v1.3.4/ for API docs
         console.log("Web3 object:", web3);
         web3.eth.getAccounts().then(setAccounts);
 
         const networkId = await web3.eth.net.getId();
         const deployedNetwork = ProjectsContract.networks[networkId];
-        const instance = new web3.eth.Contract(
-          ProjectsContract.abi,
-          deployedNetwork && deployedNetwork.address
+        setInstance(
+          new web3.eth.Contract(
+            ProjectsContract.abi,
+            deployedNetwork && deployedNetwork.address
+          )
         );
-
-        // const result = await instance.methods.addProject(1, "Project 1").send({
-        //   from: "0xC404F3c136076dEc198FF22e374AD049fD55eF3F",
-        //   value: "1000000000000000000",
-        //   gas: 6721974,
-        // });
-        //console.log(await instance.methods.projectCount().call());
-        // console.log(result);
       }
-      asyncUseEffect();
+      getAccounts();
+      getProjects();
     }
   }, [web3]);
 
+  async function getProjects() {
+    if (web3) {
+      const networkId = await web3.eth.net.getId();
+      const deployedNetwork = ProjectsContract.networks[networkId];
+      const instance = new web3.eth.Contract(
+        ProjectsContract.abi,
+        deployedNetwork && deployedNetwork.address
+      );
+
+      let projectNumber = await instance.methods.projectCount().call();
+
+      let projects = [];
+
+      for (let i = 0; i < projectNumber; i++) {
+        let project = await instance.methods.project(i).call();
+        if (parseInt(project.state) !== 4) {
+          projects.push(project);
+        }
+      }
+
+      setProjects(projects);
+    }
+  }
+
   return (
     <div>
-      <Routes />
-      {/* <p>
-        Edit <code>src/App.js</code> and save to reload.
-      </p>
-      {web3 && <AccountsList web3={web3} />} */}
+      {instance && (
+        <Router>
+          <Link to="/freelancer">Freelancer</Link>
+          <br></br>
+          <Link to="/admin">Admin</Link>
+          <br></br>
+          <Link to="/client">Client</Link>
+
+          <Route
+            path="/freelancer"
+            render={() => (
+              <Freelancer
+                web3={web3}
+                projects={projects}
+                accountAddr={accounts[2]}
+                instance={instance}
+                parentCallback={getProjects}
+              />
+            )}
+            exact
+          />
+          <Route
+            path="/admin"
+            render={() => (
+              <Admin
+                web3={web3}
+                projects={projects}
+                accountAddr={"0x8F5A6fAe267412c4b218e154816f2566b429C17b"}
+                instance={instance}
+                parentCallback={getProjects}
+              />
+            )}
+            exact
+          />
+          <Route
+            path="/client"
+            render={() => (
+              <Client
+                web3={web3}
+                projects={projects}
+                accountAddr={accounts[0]}
+                instance={instance}
+                parentCallback={getProjects}
+              />
+            )}
+            exact
+          />
+        </Router>
+      )}
     </div>
-  );
-}
-
-function AccountsList({ web3 }) {
-  const [accountList, setAccountList] = useState([]);
-
-  useEffect(() => {
-    web3.eth.getAccounts().then(setAccountList);
-  }, [web3]);
-
-  return (
-    <>
-      <h2>Ethereum accounts</h2>
-      <ul>
-        {accountList.map((account) => (
-          <li key={account}>{account}</li>
-        ))}
-      </ul>
-    </>
   );
 }
 
