@@ -34,7 +34,6 @@ contract Projects {
         incrementCount(); // increment the number of projects
         project[projectCount] = Project(projectCount,msg.value,_name,0,address(0),msg.sender); // initialise the project
         require(msg.value > 1000,"The amount of wei is insufficient");// amount must be al least 1000 wei (200 euro as of 5/11/2021)
-        owner.transfer(msg.value);
         
     }
  
@@ -46,52 +45,39 @@ contract Projects {
         
     } 
     
-    function finishProject(uint _id) public onlyOwner { // method should be  called when the project is considered finished and it sets it's state to finished
+    function finishProject(uint _id) public { // method should be  called when the project is considered finished and it sets it's state to finished
         require(project[_id].state != 0, "The project is not taken");
         require(project[_id].state != 2, "The project is already finished");
         project[_id].state = 2;
         
     }
     
-    function cancelProject(uint _id) payable public onlyOwner {
+    function cancelProject(uint _id) public onlyOwner {
+        
+        require(project[_id].state != 3, "The project is validated");
+        require(project[_id].state != 4, "The project is cancelled");
         
         address payable payee = project[_id].client;
-    //    uint256 payment = project[_id].value;
-        payee.transfer(msg.value);
-    // payee.transfer(payment) -> not working
+        uint256 payment = project[_id].value;
+        payee.transfer(payment);
         project[_id].state = 4;
         
     }
-    
-    function validateProject(uint _id) payable public onlyOwner {
+
+    function validateProject(uint _id) public onlyOwner {
+        `
+        require(project[_id].state != 0, "The project is not taken");
+        require(project[_id].state != 1, "The project is taken");
+        require(project[_id].state != 3, "The project is validated");
+        require(project[_id].state != 4, "The project is cancelled");
         
         address payable payee = project[_id].programer;
-     //   uint256 payment = project[_id].value;
-        payee.transfer(msg.value);
-     // payee.transfer(payment) -> not working
+        uint256 payment = project[_id].value;
+        payee.transfer(payment);
         project[_id].state = 3; 
         
         
     }
     
-    
-    
-    /* unused
-    
-    function deposit(address payee) public onlyOwner payable { // deposits any sent amount of ether to the payee adress
-        uint256 amount = msg.value;
-        deposits[payee] = deposits[payee] + amount;
-    
-    }
-    
-    function withdraw(address payable payee) public onlyOwner { // withdraws all the ether stored in the deposits
-        uint256 payment = deposits[payee];
-        deposits[payee] = 0;
-        payee.transfer(payment);
-        
-    }
-    
-    */
-        
     
 }
