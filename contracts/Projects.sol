@@ -25,13 +25,14 @@ contract Projects {
         uint id;
         uint value; //amount of wei it pays
         string name;
-        uint state; //0 is untaken, 1 is taken, 2 is finished
-        address programer; // the person working on the project
+        uint state; // 0 is untaken, 1 is taken, 2 is finished, 3 is validated, 4 is canceled
+        address payable programer; // the person working on the project
+        address payable client; // the one who added the project
     }
     
     function addProject(string memory _name) payable public {
         incrementCount(); // increment the number of projects
-        project[projectCount] = Project(projectCount,msg.value,_name,0,address(0)); // initialise the project
+        project[projectCount] = Project(projectCount,msg.value,_name,0,address(0),msg.sender); // initialise the project
         require(msg.value > 1000,"The amount of wei is insufficient");// amount must be al least 1000 wei (200 euro as of 5/11/2021)
         owner.transfer(msg.value);
         
@@ -52,6 +53,30 @@ contract Projects {
         
     }
     
+    function cancelProject(uint _id) payable public onlyOwner {
+        
+        address payable payee = project[_id].client;
+    //    uint256 payment = project[_id].value;
+        payee.transfer(msg.value);
+    // payee.transfer(payment) -> not working
+        project[_id].state = 4;
+        
+    }
+    
+    function validateProject(uint _id) payable public onlyOwner {
+        
+        address payable payee = project[_id].programer;
+     //   uint256 payment = project[_id].value;
+        payee.transfer(msg.value);
+     // payee.transfer(payment) -> not working
+        project[_id].state = 3; 
+        
+        
+    }
+    
+    
+    
+    /* unused
     
     function deposit(address payee) public onlyOwner payable { // deposits any sent amount of ether to the payee adress
         uint256 amount = msg.value;
@@ -66,6 +91,7 @@ contract Projects {
         
     }
     
+    */
         
     
 }
