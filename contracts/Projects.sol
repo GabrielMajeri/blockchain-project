@@ -3,7 +3,6 @@ pragma solidity >=0.5.0 <0.9.0;
 contract Projects {
     uint256 public projectCount = 0;
     mapping(uint256 => Project) public project;
-    mapping(address => uint256) public deposits;
 
     address public owner;
 
