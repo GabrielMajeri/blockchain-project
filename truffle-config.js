@@ -27,7 +27,9 @@ const path = require("path");
 // const mnemonic = fs.readFileSync(".secret").toString().trim();
 
 module.exports = {
+  // Save contracts in the `client` directory, to allow React to import them.
   contracts_build_directory: path.join(__dirname, "client/src/contracts"),
+
   /**
    * Networks define how you connect to your ethereum client and let you set the
    * defaults web3 uses to send transactions. If you don't specify one truffle
