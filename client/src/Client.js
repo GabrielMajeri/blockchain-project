@@ -1,23 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useBalance } from "./hooks";
 
 function Client({ web3, projects, accountAddr, instance, parentCallback }) {
   const [projectName, setProjectName] = useState("");
   const [paymentEth, setPaymentEth] = useState(0);
-  const [balance, setBalance] = useState(0);
-
-  useEffect(() => {
-    async function getBalance() {
-      setBalance(await web3.eth.getBalance(accountAddr));
-    }
-    getBalance();
-  }, []);
+  const balance = useBalance(web3, accountAddr);
 
   async function createProject() {
     if (projectName !== "" && paymentEth !== 0) {
-      console.log(projectName, paymentEth);
-
-      let ethPayment = (paymentEth * 1000000000000000000).toString();
-      console.log(ethPayment);
+      const ethPayment = (paymentEth * 1000000000000000000).toString();
 
       await instance.methods.addProject(projectName).send({
         from: accountAddr.toString(),
@@ -31,7 +22,8 @@ function Client({ web3, projects, accountAddr, instance, parentCallback }) {
 
   return (
     <>
-      <h1>Hello Client {balance}</h1>
+      <h1>Hello Client</h1>
+      <p>Current balance: {balance} wei</p>
       <h2>Create new project</h2>
       <form>
         <label>
@@ -45,9 +37,8 @@ function Client({ web3, projects, accountAddr, instance, parentCallback }) {
         </label>
         <br />
         <br />
-        <br />
         <label>
-          Payment(in ETH):
+          Payment (in ETH):
           <br />
           <input
             type="text"
@@ -55,31 +46,32 @@ function Client({ web3, projects, accountAddr, instance, parentCallback }) {
             onChange={(e) => setPaymentEth(e.target.value)}
           />
         </label>
+        <br />
+        <button type="button" onClick={createProject}>
+          Create Project
+        </button>
       </form>
-      <button onClick={createProject}>Create Project</button>
 
-      {projects && (
-        <table>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Programer</th>
-              <th>State</th>
-              <th>Value</th>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Programer</th>
+            <th>State</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {projects.map((project) => (
+            <tr key={project.id}>
+              <td>{project.name}</td>
+              <td>{project.programer}</td>
+              <td>{project.state}</td>
+              <td>{project.value}</td>
             </tr>
-          </thead>
-          <tbody>
-            {projects.map((project) => (
-              <tr key={project.id}>
-                <td>{project.name}</td>
-                <td>{project.programer}</td>
-                <td>{project.state}</td>
-                <td>{project.value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          ))}
+        </tbody>
+      </table>
     </>
   );
 }

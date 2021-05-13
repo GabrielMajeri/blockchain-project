@@ -1,79 +1,54 @@
-import { useState, useEffect } from "react";
-import getWeb3 from "./getWeb3";
-import ProjectsContract from "./contracts/Projects.json";
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect,
+} from "react-router-dom";
 
-import { Link, BrowserRouter as Router, Route } from "react-router-dom";
+import {
+  useAccounts,
+  useProjectsContractInstance,
+  useProjectsList,
+  useWeb3,
+} from "./hooks";
 
 import Freelancer from "./Freelancer";
 import Admin from "./Admin";
 import Client from "./Client";
+import { useEffect, useState } from "react";
 
 function App() {
-  const [web3, setWeb3] = useState(null);
-  const [accounts, setAccounts] = useState([]);
-  const [projects, setProjects] = useState(null);
-  const [instance, setInstance] = useState(null);
+  const web3 = useWeb3();
+  console.log(web3);
+  const accounts = useAccounts(web3);
+  const instance = useProjectsContractInstance(web3);
+  const [projects, refreshProjectsList] = useProjectsList(instance);
+
+  const [ownerAddress, setOwnerAddress] = useState();
 
   useEffect(() => {
-    // Connect to the local Ethereum node
-    getWeb3().then(setWeb3);
-  }, []);
-
-  useEffect(() => {
-    if (web3) {
-      async function getAccounts() {
-        // See https://web3js.readthedocs.io/en/v1.3.4/ for API docs
-        console.log("Web3 object:", web3);
-        web3.eth.getAccounts().then(setAccounts);
-
-        const networkId = await web3.eth.net.getId();
-        const deployedNetwork = ProjectsContract.networks[networkId];
-        setInstance(
-          new web3.eth.Contract(
-            ProjectsContract.abi,
-            deployedNetwork && deployedNetwork.address
-          )
-        );
-      }
-      getAccounts();
-      getProjects();
+    if (!instance) {
+      return;
     }
-  }, [web3]);
 
-  async function getProjects() {
-    if (web3) {
-      const networkId = await web3.eth.net.getId();
-      const deployedNetwork = ProjectsContract.networks[networkId];
-      const instance = new web3.eth.Contract(
-        ProjectsContract.abi,
-        deployedNetwork && deployedNetwork.address
-      );
+    instance.methods.owner().call().then(setOwnerAddress);
+  }, [instance]);
 
-      let projectNumber = await instance.methods.projectCount().call();
-
-      let projects = [];
-
-      for (let i = 0; i < projectNumber; i++) {
-        let project = await instance.methods.project(i).call();
-        if (parseInt(project.state) !== 4) {
-          projects.push(project);
-        }
-      }
-
-      setProjects(projects);
-    }
+  if (!web3 || !accounts || !instance) {
+    return <p>Loading...</p>;
   }
 
   return (
     <div>
-      {instance && (
-        <Router>
-          <Link to="/freelancer">Freelancer</Link>
-          <br></br>
-          <Link to="/admin">Admin</Link>
-          <br></br>
-          <Link to="/client">Client</Link>
+      <Router>
+        <Link to="/freelancer">Freelancer</Link>
+        <br></br>
+        <Link to="/admin">Admin</Link>
+        <br></br>
+        <Link to="/client">Client</Link>
 
+        <Switch>
           <Route
             path="/freelancer"
             render={() => (
@@ -82,7 +57,7 @@ function App() {
                 projects={projects}
                 accountAddr={accounts[2]}
                 instance={instance}
-                parentCallback={getProjects}
+                parentCallback={refreshProjectsList}
               />
             )}
             exact
@@ -93,9 +68,9 @@ function App() {
               <Admin
                 web3={web3}
                 projects={projects}
-                accountAddr={"0x8F5A6fAe267412c4b218e154816f2566b429C17b"}
+                accountAddr={ownerAddress}
                 instance={instance}
-                parentCallback={getProjects}
+                parentCallback={refreshProjectsList}
               />
             )}
             exact
@@ -108,13 +83,14 @@ function App() {
                 projects={projects}
                 accountAddr={accounts[0]}
                 instance={instance}
-                parentCallback={getProjects}
+                parentCallback={refreshProjectsList}
               />
             )}
             exact
           />
-        </Router>
-      )}
+          <Route path="/" render={() => <Redirect to="/client" />} exact />
+        </Switch>
+      </Router>
     </div>
   );
 }

@@ -6,9 +6,9 @@ contract Projects {
     mapping(uint => Project) public project;
     mapping(address => uint256) public deposits;
 
-    address payable owner;
+    address public owner;
 
-     constructor () public {
+    constructor () public {
         owner = msg.sender;
     }
 
@@ -42,7 +42,7 @@ contract Projects {
         project[_id].programer = msg.sender;
         project[_id].state = 1;
 
-    } 
+    }
 
     function finishProject(uint _id) public { // method should be  called when the project is considered finished and it sets it's state to finished
         require(project[_id].state != 0, "The project is not taken");
@@ -72,7 +72,7 @@ contract Projects {
         address payable payee = project[_id].programer;
         uint256 payment = project[_id].value;
         payee.transfer(payment);
-        project[_id].state = 3; 
+        project[_id].state = 3;
 
 
     }
