@@ -1,16 +1,14 @@
-function Admin({ web3, projects, accountAddr, instance, parentCallback }) {
+function Admin({ web3, projects, accountAddr, instance }) {
   async function cancelProject(nrProject) {
     await instance.methods
       .cancelProject(parseInt(nrProject))
       .send({ from: accountAddr.toString() });
-    parentCallback();
   }
 
   async function okProject(nrProject) {
     await instance.methods.validateProject(parseInt(nrProject)).send({
       from: accountAddr.toString(),
     });
-    parentCallback();
   }
 
   return (

@@ -1,20 +1,18 @@
 import { useBalance } from "./hooks";
 
-function Freelancer({ web3, projects, accountAddr, instance, parentCallback }) {
+function Freelancer({ web3, projects, accountAddr, instance }) {
   const balance = useBalance(web3, accountAddr);
 
   async function takeProject(nrProject) {
     await instance.methods
       .takeProject(parseInt(nrProject))
       .send({ from: accountAddr.toString() });
-    parentCallback();
   }
 
   async function completeProject(nrProject) {
     await instance.methods
       .finishProject(parseInt(nrProject))
       .send({ from: accountAddr.toString() });
-    parentCallback();
   }
 
   return (

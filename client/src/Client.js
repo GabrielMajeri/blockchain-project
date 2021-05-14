@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useBalance } from "./hooks";
 
-function Client({ web3, projects, accountAddr, instance, parentCallback }) {
+function Client({ web3, projects, accountAddr, instance }) {
   const [projectName, setProjectName] = useState("");
   const [paymentEth, setPaymentEth] = useState(0);
   const balance = useBalance(web3, accountAddr);
 
   async function createProject() {
     if (projectName !== "" && paymentEth !== 0) {
+      console.log("Creating project");
+
       const ethPayment = (paymentEth * 1000000000000000000).toString();
 
       await instance.methods.addProject(projectName).send({
@@ -15,9 +17,10 @@ function Client({ web3, projects, accountAddr, instance, parentCallback }) {
         value: ethPayment,
         gas: 6721000,
       });
-    }
 
-    parentCallback();
+      setProjectName("");
+      setPaymentEth(0);
+    }
   }
 
   return (

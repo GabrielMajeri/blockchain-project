@@ -99,8 +99,17 @@ export const useProjectsList = (instance) => {
       return;
     }
 
+    instance.events.allEvents({}, (error, event) => {
+      if (error) {
+        console.error("Event error: %o", error);
+      } else {
+        console.log("Received event: %o", event);
+        refreshProjectsList();
+      }
+    });
+
     refreshProjectsList();
   }, [instance, refreshProjectsList]);
 
-  return [projects, refreshProjectsList];
+  return projects;
 };

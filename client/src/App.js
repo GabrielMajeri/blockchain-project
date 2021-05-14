@@ -20,10 +20,9 @@ import { useEffect, useState } from "react";
 
 function App() {
   const web3 = useWeb3();
-  console.log(web3);
   const accounts = useAccounts(web3);
   const instance = useProjectsContractInstance(web3);
-  const [projects, refreshProjectsList] = useProjectsList(instance);
+  const projects = useProjectsList(instance);
 
   const [ownerAddress, setOwnerAddress] = useState();
 
@@ -57,7 +56,6 @@ function App() {
                 projects={projects}
                 accountAddr={accounts[2]}
                 instance={instance}
-                parentCallback={refreshProjectsList}
               />
             )}
             exact
@@ -70,7 +68,6 @@ function App() {
                 projects={projects}
                 accountAddr={ownerAddress}
                 instance={instance}
-                parentCallback={refreshProjectsList}
               />
             )}
             exact
@@ -83,7 +80,6 @@ function App() {
                 projects={projects}
                 accountAddr={accounts[0]}
                 instance={instance}
-                parentCallback={refreshProjectsList}
               />
             )}
             exact
