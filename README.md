@@ -13,3 +13,7 @@ You need to have [Truffle](https://www.trufflesuite.com/docs/truffle/getting-sta
 - [Bogdan Nițică](https://github.com/BogdanNitica99)
 - [Gabriel Majeri](https://github.com/GabrielMajeri)
 - [Radu Susan](https://github.com/SusanRadu)
+
+## License
+
+The source code is licensed under the permissive [MIT license](LICENSE.txt).
